@@ -27,7 +27,9 @@ app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
 
 mongoose.Promise = Promise;
-mongoose.connect("mongodb://localhost/nprtechnews", {
+
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/nprtechnews";
+mongoose.connect(MONGODB_URI, {
   useMongoClient: true
 });
 
