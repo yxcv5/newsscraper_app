@@ -22,7 +22,6 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // Use express.static to serve the public folder as a static directory
 app.use(express.static("public"));
 
-
 var exphbs = require("express-handlebars");
 app.engine("handlebars", exphbs({ defaultLayout: "main" }));
 app.set("view engine", "handlebars");
@@ -36,7 +35,6 @@ var results = [];
 
 // Routes
 app.get("/", function(req, res) {
-  console.log(results);
   res.render("index", 
     { 
       articles: results 
@@ -51,11 +49,13 @@ app.get("/scrape", function(req, res) {
     // Load the html body from request into cheerio
     var $ = cheerio.load(html);
 
-    $('#overflow').find('article').each(function(i, element) {
+    $('#overflow').children('article.item').each(function(i, element) {
 
       var title = $(element).children(".item-info").children(".title").find("a").text();
       var link = $(element).children(".item-info").children(".title").find("a").attr("href");
-      var body = $(element).children("item-info").children(".teaser").find("a").text();
+      var body = $(element).children(".item-info").children("p.teaser").find("a").text();
+     
+      console.log(body);
 
       results.push({ 
         title: title,
@@ -72,68 +72,88 @@ app.get("/scrape", function(req, res) {
 
 // Route for getting all Articles from the db
 app.get("/saved", function(req, res) {
-  // Grab every document in the Articles collection
+
   db.Article
     .find({})
     .then(function(dbArticles) {
+      console.log(dbArticles);
       // showSaved= true;
       // results = dbArticles;
       // res.redirect("/");
-      // res.json(dbArticles);
       res.render("saved", {articles: dbArticles});
     })
     .catch(function(err) {
-      // If an error occurred, send it to the client
       res.json(err);
     });
 });
-
-      // if(title && link && body) {
-      //   db.Article
-      //   .create({
-      //     title: title,
-      //     link: link,
-      //     body: body
-      //   })
-      //   .then(function(dbArticle) {
-      //     res.json(length + " articles scraped");
-      //   })
-      //   .catch(function(err) {
-      //     res.json(err);
-      //   });
-      // }
 
 // Route for saving an Article
 app.post("/article", function(req, res) {
+  //first check to see if the article has already been saved in the db
   db.Article
-    .create(req.body)
-    .then(function(dbArticle) {
-      console.log(dbArticle);
+    .find({
+      link : req.body.link
     })
-    .catch(function(err) {
-      // If an error occurred, send it to the client
-      res.json(err);
-    });
+    .then(function(dbArticles) {
+      if(dbArticles.length > 0) {
+        console.log("article exists");
+        // console.log("line 99: " + dbArticles.link);
+        res.send("This article has already been saved!");
+      }
+      else {
+        console.log("about to save");
+        db.Article
+        .create(req.body)
+        .then(function(dbArticle) {
+          res.json(dbArticle);
+        })
+        .catch(function(err) {
+          res.json(err);
+        });
+      }
+    }); 
+    // , function(err, dbArticles) {
+    //   if(dbArticles.) {
+    //     console.log("article exists");
+    //     // console.log("line 99: " + dbArticles.link);
+    //     res.send("This article has already been saved!");
+    //   }
+    //   else {
+    //     console.log("about to save");
+    //     db.Article
+    //     .create(req.body)
+    //     .then(function(dbArticle) {
+    //       res.json(dbArticle);
+    //     })
+    //     .catch(function(err) {
+    //       res.json(err);
+    //     });
+    //   }
+    // });
+    
 });
 
-// Delete One from the DB
-// app.get("/delete/:id", function(req, res) {
+// Delete an article from the DB
 app.delete("/delete/:id", function(req, res) {
-  // Remove a note using the objectID
-  db.Article.findByIdAndRemove(req.params.id, function(err, removed) {
-    // Log any errors
-    if (err) {
+
+  db.Article.findByIdAndRemove(req.params.id, function(error, removed) {
+    if (error) {
       res.json(error);
     }
     else {
-      res.redirect("/saved");
+      //remove associated notes too
+      removed.notes.forEach(function(el) {
+        db.Note.findByIdAndRemove(el, function(err, rmdNote) {
+          console.log(rmdNote);
+        });
+      });
+      res.json(removed);
     }
   });
 });
 
 // Route for saving an Article's associated Note
 app.post("/articles/:id", function(req, res) {
-  // Create a new note and pass the req.body to the entry
   db.Note
     .create(req.body)
     .then(function(dbNote) {
@@ -143,7 +163,6 @@ app.post("/articles/:id", function(req, res) {
       res.json(dbArticle);
     })
     .catch(function(err) {
-      // If an error occurred, send it to the client
       res.json(err);
     });
 });
@@ -165,8 +184,10 @@ app.get("/articles/:id", function(req, res) {
     });
 });
 
+//Route for deleting a specific note on a specific article
 app.get("/articles/:id/:noteid", function(req, res) {
 
+  //Remove a specific note from Article notes array
   db.Article.update({ _id: req.params.id },
    { $pull: { notes: req.params.noteid }},
    function(err, response) {
@@ -176,8 +197,11 @@ app.get("/articles/:id/:noteid", function(req, res) {
       res.send(response);
    }
   );
+  //Then remove that specific note from Note
+  db.Note.findByIdAndRemove(req.params.noteid, function(error, rmdNote) {
+    console.log(rmdNote);
+  });
 });
-
 
 // Start the server
 app.listen(PORT, function() {

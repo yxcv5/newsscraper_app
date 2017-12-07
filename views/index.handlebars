@@ -11,8 +11,8 @@
   </div>
 </nav>
 <div class="jumbotron">
-  <div class="page-header">
-    <h1>Keep Updated with the Latest News in Technology!</h1>
+  <div class="page-header text-center">
+    <h1 style="color:white;">Keep Updated with the Latest News in Technology!</h1>
   </div>
 </div>
 
@@ -23,7 +23,7 @@
     <div class="modal-header">
       <button type="button" class="close" data-dismiss="modal">&times;</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body text-center">
       <h2 id="scrape-info"></h2>
     </div>
     <div class="modal-footer">
@@ -36,10 +36,10 @@
 <div class="container results">
 
   {{#each articles}}
-	{{> articles/article-block showsaved=false}}
+	   {{> articles/article-block showsaved=false}}
   {{else}}
-	<div class="panel panel-warning">
-	   <div class="panel-heading">Uh Oh. Looks like we don't have any new articles.</div>
+	<div class="panel panel-danger">
+	   <div class="panel-heading text-center"><h2>Uh Oh. Looks like we don't have any new articles.</h2></div>
 	</div>
   {{/each}}
 

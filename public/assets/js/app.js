@@ -1,37 +1,18 @@
+
 $("#scrapeBtn").on("click", function() {
-  // if(window.location.href !== window.location.origin)
+  // window.location.href="/";
   $(".results").empty();
   $.getJSON("/scrape", function(data) {
-    // window.location.href="/";
-    $("#scrape-info").text("Added %d new articles!", data.length);
+    
+    $("#scrape-info").text("Added " + data.length + " new articles!");
     $("#scrapeModal").modal("show");  
-    // For each one
-    for (var i = 0; i < data.length; i++) {
-      // Display the apropos information on the page      
+    
+    for (var i = 0; i < data.length; i++) { 
       $(".results").append(createNewPane(data[i]));
     }
     //or call a $.post("/") route with returned data  to rerender home page?
   });
 });
-
-// $("#showSaved").on("click", function(event) {
-
-//   event.preventDefault();
-//   $("#results").empty();
-
-//   $.getJSON("/articles", function(data) {
-//     // For each one
-//     if(data.length>0) {
-//       for (var i = 0; i < data.length; i++) {
-//         // Display the apropos information on the page      
-//         $("#results").append(createNewPane(data[i]));
-//       }
-//     }
-//     else {
-//         $("#results").append(createNewPane(data[i]));
-//     }
-//   });
-// });
 
 function createNewPane(article) {
   var btns;
@@ -51,12 +32,11 @@ function createNewPane(article) {
       "<div class='panel panel-primary'>",
       "<div class='panel-heading clearfix'>",
       article.title,
-      // "<button class='save btn btn-success pull-right'>SAVE ARTICLE</button>",
       btns,
       "</div>",
       "<div class='panel-body'>",
       article.body,
-      "<a href='",
+      "<a target='_blank' href='",
       article.link,
       "'> Read more ... </a>",
       "</div>",
@@ -66,8 +46,6 @@ function createNewPane(article) {
 
   if(!article._id)
     $newPane.find("button.save").data("article", article);
-
-  // $newPane.data("article", article);
 
   return $newPane;
 }
@@ -82,7 +60,12 @@ $(document).on("click", ".save", function() {
     data: $(this).data("article")
   })
   .done(function(data) {
-    console.log(data);
+    if(typeof data === "string" && data.startsWith("This")) {
+      console.log(data);
+      alert(data);
+    }
+    else 
+      console.log(data);
   });
 });
 
@@ -96,8 +79,31 @@ $(document).on("click", ".unsave", function() {
   })
   .done(function(data) {
     console.log(data);
+    location.reload();  //the server-side res.redirect() method seems not work properly however I tried
   });
 });
+
+function populateNotes(id) {
+  $("#thenotes").empty();
+  
+  $.ajax({
+    method: "GET",
+    url: "/articles/" + id
+  })
+  .done(function(data) {
+    $("#notes-header").text("Notes for Article: " + data._id);
+    if(data.notes.length>0) {
+      for(var i=0; i<data.notes.length; i++) {
+        $("#thenotes").append("<p class='clearfix' data-id='" + data.notes[i]._id + "'>" + 
+                      data.notes[i].body + "<span class='deletenote pull-right'>X</span></p>");    
+      }
+    }
+    else {
+      $("#thenotes").append("<p>No notes for this article</p>"); 
+    }
+    $("#savenote").data("id", id);
+  });
+}
 
 $(document).on("click", ".getnotes", function() {
   $("#notesModal").modal("show");
@@ -114,6 +120,7 @@ $(document).on("click", "#savenote", function() {
   .done(function(data) {
     populateNotes(data._id);
     $("#newnote").val("");
+  });
 });
 
 $(document).on("click", ".deletenote", function() {
@@ -125,32 +132,11 @@ $(document).on("click", ".deletenote", function() {
     success: function() {
       populateNotes(artId);
     }
-  })
+  });
 });
 
-function populateNotes(id) {
 
-  $("#thenotes").empty();
-  
-  $.ajax({
-    method: "GET",
-    url: "/articles/" + id
-  })
-  .done(function(data) {
-    $("#notes-header").text("Notes for Article: " + data._id);
-    if(data.notes.length>0) {
-      for(var i=0; i<data.notes.length; i++) {
-        $("#thenotes").append("<p data-id='" + data.notes[i]._id + "'>" + 
-                      data.notes[i].body + "<span class='deletenote'>X</span></p>");    
-      }
-    }
-    else {
-      $("#thenotes").append("<p>No notes for this article</p>"); 
-    }
-    // $("#notesModal").modal("show");
-    $("#savenote").data("id", id);
-  });
-}
+
 
 
 

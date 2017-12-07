@@ -2,8 +2,8 @@
     <div class="panel-heading clearfix">
        {{title}}
        {{#if showsaved}}
+           <button data-id="{{_id}}" class="unsave btn btn-danger pull-right">REMOVE FROM SAVED</button>
            <button data-id="{{_id}}" class="getnotes btn btn-warning pull-right">ARTICLE NOTES</button>
-	       <button data-id="{{_id}}" class="unsave btn btn-danger pull-right">REMOVE FROM SAVED</button>
        {{else}}
            <button class="save btn btn-success pull-right">SAVE ARTICLE</button>
        {{/if}}

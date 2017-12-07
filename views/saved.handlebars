@@ -11,8 +11,8 @@
   </div>
 </nav>
 <div class="jumbotron">
-  <div class="page-header">
-    <h1>Keep Updated with the Latest News in Technology!</h1>
+  <div class="page-header text-center">
+    <h1 style="color:white">Your Saved Articles </h1>
   </div>
 </div>
 
@@ -20,13 +20,13 @@
 <div id="notesModal" class="modal fade" role="dialog">
 <div class="modal-dialog">
   <div class="modal-content">
-    <div class="modal-header">
+    <div class="modal-header text-center">
       <button type="button" class="close" data-dismiss="modal">&times;</button>
       <h2 id="notes-header"></h2>
     </div>
     <div class="modal-body">
-      <div id="thenotes"></div>
-      <textarea class="form-control" rows="4" id="newnote"></textarea>
+      <div class="well" id="thenotes"></div>
+      <textarea class="form-control" rows="2" id="newnote"></textarea>
     </div>
     <div class="modal-footer">
       <button type="button" id="savenote" class="btn btn-primary">SAVE NOTE</button>
@@ -38,11 +38,21 @@
 <div class="container results">
 
   {{#each articles}}
-	{{> articles/article-block showsaved=true}}
+	  <div class="panel panel-primary">
+      <div class="panel-heading clearfix">
+        {{title}}
+        <button data-id="{{_id}}" class="unsave btn btn-danger pull-right">REMOVE FROM SAVED</button>
+        <button data-id="{{_id}}" class="getnotes btn btn-warning pull-right">ARTICLE NOTES</button>
+      </div>
+      <div class="panel-body">
+        {{body}} 
+        <a target="_blank" href="{{link}}"> Read more ... </a>
+      </div>
+    </div>
   {{else}}
-	<div class="panel panel-warning">
-	   <div class="panel-heading">Uh Oh. Looks like we don't have any saved articles.</div>
-	</div>
+	  <div class="panel panel-danger">
+	    <div class="panel-heading text-center"><h2>Uh Oh. Looks like we don't have any saved articles.<h2></div>
+	  </div>
   {{/each}}
 
 </div>
